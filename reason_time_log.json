@@ -1,0 +1,23 @@
+{
+  "date": "2026-04-06",
+  "accumulated_sec": {},
+  "last_updated": "2026-04-06T12:41:39.898955",
+  "summary": [
+    {
+      "label": "MAINTENANCE",
+      "total_sec": 0
+    },
+    {
+      "label": "MATERIAL",
+      "total_sec": 0
+    },
+    {
+      "label": "QUALITY",
+      "total_sec": 0
+    },
+    {
+      "label": "PRODUCTION",
+      "total_sec": 0
+    }
+  ]
+}

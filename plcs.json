@@ -1,0 +1,12 @@
+[
+    {
+        "id": 1,
+        "name": "TEST-PLC-01",
+        "ip": "192.168.1.10",
+        "port": 5001,
+        "location": "Testing PLC",
+        "model": "Q06HCPU",
+        "status": "online",
+        "plc_type": "hex"
+    }
+]

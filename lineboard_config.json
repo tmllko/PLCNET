@@ -1,0 +1,126 @@
+{
+  "line_name": "LINE 1",
+  "plc_id": 1,
+  "num_stations": 8,
+  "num_buttons": 4,
+  "reg_line_running": "M0",
+  "reg_stopped_station": "D100",
+  "buttons": [
+    {
+      "label": "MAINTENANCE",
+      "color": "yellow"
+    },
+    {
+      "label": "MATERIAL",
+      "color": "red"
+    },
+    {
+      "label": "QUALITY",
+      "color": "green"
+    },
+    {
+      "label": "PRODUCTION",
+      "color": "yellow"
+    }
+  ],
+  "reg_buttons": [
+    [
+      "X0",
+      "X1",
+      "X2",
+      "X3"
+    ],
+    [
+      "X4",
+      "X5",
+      "X6",
+      "X7"
+    ],
+    [
+      "X8",
+      "X9",
+      "X10",
+      "X11"
+    ],
+    [
+      "X12",
+      "X13",
+      "X14",
+      "X15"
+    ],
+    [
+      "X16",
+      "X17",
+      "X18",
+      "X19"
+    ],
+    [
+      "X20",
+      "X21",
+      "X22",
+      "X23"
+    ],
+    [
+      "X24",
+      "X25",
+      "X26",
+      "X27"
+    ],
+    [
+      "X28",
+      "X29",
+      "X30",
+      "X31"
+    ]
+  ],
+  "reg_reason_time": [
+    {
+      "hr": "D130",
+      "min": "D131"
+    },
+    {
+      "hr": "D132",
+      "min": "D133"
+    },
+    {
+      "hr": "D134",
+      "min": "D135"
+    },
+    {
+      "hr": "D136",
+      "min": "D137"
+    }
+  ],
+  "dropping": {
+    "vehicle_counter_reg": "D200",
+    "current_hour": {
+      "plan_value": 10
+    },
+    "till_last_hour": {
+      "plan_value": 20,
+      "auto_till": true
+    },
+    "for_day": {
+      "plan_value": 100
+    }
+  },
+  "reg_oee": "D120",
+  "reg_availability": "D121",
+  "reg_performance": "D122",
+  "reg_drr1": "D123",
+  "marquee_text": "WELCOME TO LINE 3",
+  "shift_hours": 8.5,
+  "shift_start": "08:00",
+  "daily_target": 170,
+  "kpi_enabled": {
+    "oee": false,
+    "availability": false,
+    "performance": false,
+    "drr1": false
+  },
+  "eol_sensor": {
+    "enabled": false,
+    "reg": "X0",
+    "active_state": "ON"
+  }
+}

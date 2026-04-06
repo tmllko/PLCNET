@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TATA MOTORS PLC MONITOR V3 - ALARMS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&amp;family=Share+Tech+Mono&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-variant": "#2f3446",
+            "on-surface-variant": "#bbc9cc",
+            "on-primary": "#00363e",
+            "secondary-fixed-dim": "#c3c6d7",
+            "secondary-container": "#454957",
+            "primary-fixed-dim": "#44d8f1",
+            "on-tertiary": "#4c2700",
+            "on-primary-fixed": "#001f25",
+            "surface-container-highest": "#2f3446",
+            "tertiary-container": "#f19640",
+            "surface-bright": "#34394a",
+            "background": "#0e1323",
+            "secondary-fixed": "#dfe2f3",
+            "on-tertiary-container": "#633400",
+            "inverse-surface": "#dee1f8",
+            "error": "#ffb4ab",
+            "outline-variant": "#3c494c",
+            "primary-fixed": "#a1efff",
+            "on-secondary-fixed": "#171b28",
+            "tertiary": "#ffb87b",
+            "surface-tint": "#44d8f1",
+            "on-secondary": "#2c303d",
+            "inverse-primary": "#006876",
+            "on-background": "#dee1f8",
+            "on-error-container": "#ffdad6",
+            "primary-container": "#00bcd4",
+            "on-tertiary-fixed-variant": "#6d3a00",
+            "surface-container-low": "#161b2b",
+            "on-primary-container": "#004650",
+            "tertiary-fixed": "#ffdcc2",
+            "on-tertiary-fixed": "#2e1500",
+            "surface-container-high": "#24293a",
+            "surface": "#0e1323",
+            "secondary": "#c3c6d7",
+            "tertiary-fixed-dim": "#ffb77b",
+            "on-surface": "#dee1f8",
+            "on-secondary-container": "#b5b8c9",
+            "surface-container-lowest": "#080d1d",
+            "surface-container": "#1a1f2f",
+            "primary": "#44d8f1",
+            "error-container": "#93000a",
+            "on-secondary-fixed-variant": "#434654",
+            "on-primary-fixed-variant": "#004e59",
+            "inverse-on-surface": "#2b3041",
+            "on-error": "#690005",
+            "surface-dim": "#0e1323",
+            "outline": "#869396"
+          },
+          fontFamily: {
+            "headline": ["Rajdhani", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+            "label": ["Rajdhani", "sans-serif"],
+            "mono": ["Share Tech Mono", "monospace"]
+          },
+          borderRadius: {
+            "DEFAULT": "4px",
+            "sm": "4px",
+            "lg": "4px",
+            "xl": "4px",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .glass-panel {
+      background: rgba(26, 31, 47, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 188, 212, 0.15);
+      box-shadow: inset 0 0 20px rgba(68, 216, 241, 0.05);
+    }
+    .status-glow-red {
+      box-shadow: 0 0 15px rgba(255, 180, 171, 0.2);
+    }
+    .industrial-grid {
+      background-image: radial-gradient(rgba(60, 73, 76, 0.1) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
+    .font-share-mono { font-family: 'Share Tech Mono', monospace; }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 industrial-grid min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#0e1323]/60 backdrop-blur-xl flex justify-between items-center px-8 h-16 w-full shadow-[0_0_20px_rgba(0,188,212,0.1)]">
+<div class="flex items-center gap-6">
+<span class="text-xl font-black text-[#dee1f8] tracking-widest font-rajdhani">TATA MOTORS PLC MONITOR V3</span>
+<nav class="hidden md:flex gap-8 items-center h-full">
+<a class="font-rajdhani font-bold uppercase tracking-[3px] text-[#dee1f8]/60 hover:text-[#00bcd4] transition-colors duration-300" href="#">MONITOR</a>
+<a class="font-rajdhani font-bold uppercase tracking-[3px] text-[#dee1f8]/60 hover:text-[#00bcd4] transition-colors duration-300" href="#">I/O MAP</a>
+<a class="font-rajdhani font-bold uppercase tracking-[3px] text-[#dee1f8]/60 hover:text-[#00bcd4] transition-colors duration-300" href="#">READ/WRITE</a>
+<a class="font-rajdhani font-bold uppercase tracking-[3px] text-[#dee1f8]/60 hover:text-[#00bcd4] transition-colors duration-300" href="#">DATA LOG</a>
+<a class="font-rajdhani font-bold uppercase tracking-[3px] text-[#dee1f8]/60 hover:text-[#00bcd4] transition-colors duration-300" href="#">TRENDS</a>
+<a class="font-rajdhani font-bold uppercase tracking-[3px] text-[#00bcd4] border-b-2 border-[#00bcd4] pb-1 relative" href="#">
+          ALARMS
+          <span class="absolute -top-2 -right-4 bg-error text-on-error text-[10px] px-1.5 py-0.5 rounded-sm font-share-mono">3</span>
+</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined text-[#dee1f8]/60 hover:text-[#00bcd4] cursor-pointer transition-colors" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface"></span>
+</div>
+<div class="h-8 w-8 bg-surface-container-high rounded-sm border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="person">person</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 border-r border-[#00bcd4]/20 bg-[#0e1323]/40 backdrop-blur-lg flex flex-col py-6 gap-4">
+<div class="px-6 mb-4">
+<h2 class="text-lg text-[#00bcd4] font-rajdhani font-bold uppercase tracking-[2px]">OPERATOR CONSOLE</h2>
+<p class="text-xs text-[#dee1f8]/40 font-rajdhani tracking-widest">STATION 042</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-4 px-6 py-3 transition-all duration-200 ease-in-out text-[#dee1f8]/40 hover:bg-[#34394a]/50 hover:text-[#dee1f8]" href="#">
+<span class="material-symbols-outlined" data-icon="backup">backup</span>
+<span class="font-rajdhani font-bold uppercase tracking-[2px]">BACKUP</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 transition-all duration-200 ease-in-out text-[#dee1f8]/40 hover:bg-[#34394a]/50 hover:text-[#dee1f8]" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-rajdhani font-bold uppercase tracking-[2px]">SCHEDULE</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 transition-all duration-200 ease-in-out text-[#dee1f8]/40 hover:bg-[#34394a]/50 hover:text-[#dee1f8]" href="#">
+<span class="material-symbols-outlined" data-icon="compare_arrows">compare_arrows</span>
+<span class="font-rajdhani font-bold uppercase tracking-[2px]">COMPARE</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 transition-all duration-200 ease-in-out text-[#dee1f8]/40 hover:bg-[#34394a]/50 hover:text-[#dee1f8]" href="#">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+<span class="font-rajdhani font-bold uppercase tracking-[2px]">EMAIL</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 transition-all duration-200 ease-in-out text-[#dee1f8]/40 hover:bg-[#34394a]/50 hover:text-[#dee1f8]" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-rajdhani font-bold uppercase tracking-[2px]">LINE CONFIG</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 transition-all duration-200 ease-in-out text-[#dee1f8]/40 hover:bg-[#34394a]/50 hover:text-[#dee1f8]" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-rajdhani font-bold uppercase tracking-[2px]">LINE BOARD</span>
+</a>
+</nav>
+<div class="mt-auto px-6">
+<div class="p-4 bg-surface-container-low rounded-sm border border-outline-variant/30">
+<div class="flex items-center gap-2 mb-2">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="text-[10px] font-share-mono text-primary">SYSTEM ONLINE</span>
+</div>
+<div class="text-[10px] font-share-mono text-on-surface-variant">UPTIME: 428:12:05</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 pt-24 px-8 pb-12">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6">
+<div>
+<h1 class="text-3xl font-rajdhani font-bold uppercase tracking-[4px] text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="notifications_active">notifications_active</span>
+          ALARM HISTORY
+        </h1>
+<p class="font-share-mono text-primary mt-2 text-sm tracking-tighter">
+          27 alarms recorded — <span class="text-error font-bold">3 unacknowledged</span>
+</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high border border-outline-variant hover:border-primary transition-colors text-xs font-rajdhani font-bold uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm" data-icon="refresh">refresh</span> REFRESH
+        </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-on-primary-container text-primary font-rajdhani font-bold uppercase tracking-widest text-xs rounded-sm hover:brightness-110 transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="done_all" style="font-variation-settings: 'FILL' 1;">done_all</span> ACK ALL
+        </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary-container/20 border border-primary-container/40 text-primary-container font-rajdhani font-bold uppercase tracking-widest text-xs hover:bg-primary-container/30 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span> EXPORT
+        </button>
+<button class="flex items-center gap-2 px-4 py-2 border border-error/40 text-error font-rajdhani font-bold uppercase tracking-widest text-xs hover:bg-error/10 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="close">close</span> CLEAR
+        </button>
+</div>
+</div>
+<!-- Toolbar Filters -->
+<div class="glass-panel p-4 mb-6 flex flex-wrap gap-4 items-center">
+<div class="flex flex-col gap-1">
+<label class="text-[10px] font-rajdhani font-bold uppercase tracking-widest text-on-surface-variant">Severity</label>
+<select class="bg-surface-container-lowest border border-outline-variant text-on-surface text-xs font-share-mono focus:border-primary focus:ring-0 rounded-sm py-1 pl-2 pr-8">
+<option>All Severity</option>
+<option>Fault Only</option>
+<option>Warning Only</option>
+<option>Info Only</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] font-rajdhani font-bold uppercase tracking-widest text-on-surface-variant">Ack Status</label>
+<select class="bg-surface-container-lowest border border-outline-variant text-on-surface text-xs font-share-mono focus:border-primary focus:ring-0 rounded-sm py-1 pl-2 pr-8">
+<option>All Ack Status</option>
+<option>Unacknowledged</option>
+<option>Acknowledged</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] font-rajdhani font-bold uppercase tracking-widest text-on-surface-variant">PLC Station</label>
+<select class="bg-surface-container-lowest border border-outline-variant text-on-surface text-xs font-share-mono focus:border-primary focus:ring-0 rounded-sm py-1 pl-2 pr-8">
+<option>All PLCs</option>
+<option>PLC-S7-1500-01</option>
+<option>PLC-S7-1500-02</option>
+<option>AB-Logix-42</option>
+</select>
+</div>
+<div class="ml-auto flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-share-mono text-on-surface-variant">AUTO-REFRESH:</span>
+<div class="w-8 h-4 bg-primary/20 rounded-full relative cursor-pointer border border-primary/40">
+<div class="absolute right-0.5 top-0.5 w-2.5 h-2.5 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Alarms Table -->
+<div class="glass-panel overflow-hidden border border-outline-variant/20">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50 border-b border-outline-variant/30">
+<th class="px-6 py-4 font-rajdhani font-bold uppercase tracking-widest text-xs text-on-surface-variant">Timestamp</th>
+<th class="px-4 py-4 font-rajdhani font-bold uppercase tracking-widest text-xs text-on-surface-variant">PLC</th>
+<th class="px-4 py-4 font-rajdhani font-bold uppercase tracking-widest text-xs text-on-surface-variant">Device</th>
+<th class="px-4 py-4 font-rajdhani font-bold uppercase tracking-widest text-xs text-on-surface-variant">Message</th>
+<th class="px-4 py-4 font-rajdhani font-bold uppercase tracking-widest text-xs text-on-surface-variant">Severity</th>
+<th class="px-4 py-4 font-rajdhani font-bold uppercase tracking-widest text-xs text-on-surface-variant text-center">Acknowledge</th>
+<th class="px-6 py-4 font-rajdhani font-bold uppercase tracking-widest text-xs text-on-surface-variant text-right">ID</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1: UNACK FAULT -->
+<tr class="group hover:bg-error/5 transition-colors border-l-4 border-error status-glow-red bg-error/10">
+<td class="px-6 py-4 font-share-mono text-xs text-error">2023-10-27 14:22:05.812</td>
+<td class="px-4 py-4 font-share-mono text-xs">S7-1500-01</td>
+<td class="px-4 py-4 font-share-mono text-xs">MOT-402-A</td>
+<td class="px-4 py-4 font-rajdhani font-semibold text-sm">CRITICAL OVERHEAT DETECTED - SHUTDOWN INITIATED</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-error/20 border border-error text-error text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="dangerous" style="font-variation-settings: 'FILL' 1;">dangerous</span> FAULT
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<button class="px-3 py-1 bg-error text-on-error font-rajdhani font-bold text-[10px] uppercase rounded-sm hover:brightness-125 transition-all">ACK</button>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10928</td>
+</tr>
+<!-- Row 2: ACK WARNING -->
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-share-mono text-xs text-on-surface-variant">2023-10-27 14:18:22.401</td>
+<td class="px-4 py-4 font-share-mono text-xs">S7-1500-02</td>
+<td class="px-4 py-4 font-share-mono text-xs">PUMP-01</td>
+<td class="px-4 py-4 font-rajdhani text-sm text-on-surface/80">LOW PRESSURE WARNING - CHECK SEAL INTEGRITY</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-tertiary-container/20 border border-tertiary text-tertiary text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span> WARNING
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<span class="inline-flex items-center gap-1 text-on-surface-variant text-[10px] font-rajdhani font-bold bg-surface-container-high px-2 py-1 rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="check_circle">check_circle</span> ACKED
+              </span>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10927</td>
+</tr>
+<!-- Row 3: INFO -->
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-share-mono text-xs text-on-surface-variant">2023-10-27 14:05:11.119</td>
+<td class="px-4 py-4 font-share-mono text-xs">LOGIX-42</td>
+<td class="px-4 py-4 font-share-mono text-xs">SYS-GW-01</td>
+<td class="px-4 py-4 font-rajdhani text-sm text-on-surface/80">WEEKLY LOG ROTATION COMPLETED SUCCESSFULLY</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-primary/10 border border-primary text-primary text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="info" style="font-variation-settings: 'FILL' 1;">info</span> INFO
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<span class="inline-flex items-center gap-1 text-on-surface-variant text-[10px] font-rajdhani font-bold bg-surface-container-high px-2 py-1 rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="check_circle">check_circle</span> ACKED
+              </span>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10926</td>
+</tr>
+<!-- Row 4: UNACK FAULT -->
+<tr class="group hover:bg-error/5 transition-colors border-l-4 border-error bg-error/5">
+<td class="px-6 py-4 font-share-mono text-xs text-error">2023-10-27 13:59:44.002</td>
+<td class="px-4 py-4 font-share-mono text-xs">S7-1500-01</td>
+<td class="px-4 py-4 font-share-mono text-xs">VALVE-22</td>
+<td class="px-4 py-4 font-rajdhani font-semibold text-sm">COMMUNICATION TIMEOUT - NODE UNREACHABLE</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-error/20 border border-error text-error text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="dangerous" style="font-variation-settings: 'FILL' 1;">dangerous</span> FAULT
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<button class="px-3 py-1 bg-error text-on-error font-rajdhani font-bold text-[10px] uppercase rounded-sm hover:brightness-125 transition-all">ACK</button>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10925</td>
+</tr>
+<!-- Row 5: WARNING -->
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-share-mono text-xs text-on-surface-variant">2023-10-27 13:45:00.000</td>
+<td class="px-4 py-4 font-share-mono text-xs">S7-1500-01</td>
+<td class="px-4 py-4 font-share-mono text-xs">CONV-A1</td>
+<td class="px-4 py-4 font-rajdhani text-sm text-on-surface/80">BELT TENSION DEVIATION DETECTED</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-tertiary-container/20 border border-tertiary text-tertiary text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span> WARNING
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<span class="inline-flex items-center gap-1 text-on-surface-variant text-[10px] font-rajdhani font-bold bg-surface-container-high px-2 py-1 rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="check_circle">check_circle</span> ACKED
+              </span>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10924</td>
+</tr>
+<!-- Additional Rows (Mix) -->
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-share-mono text-xs text-on-surface-variant">2023-10-27 13:32:10.555</td>
+<td class="px-4 py-4 font-share-mono text-xs">AB-LOGIX-42</td>
+<td class="px-4 py-4 font-share-mono text-xs">CAM-SCAN-01</td>
+<td class="px-4 py-4 font-rajdhani text-sm text-on-surface/80">CALIBRATION CYCLE REQUIRED - 1000 UNITS REMAINING</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-primary/10 border border-primary text-primary text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="info" style="font-variation-settings: 'FILL' 1;">info</span> INFO
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<span class="inline-flex items-center gap-1 text-on-surface-variant text-[10px] font-rajdhani font-bold bg-surface-container-high px-2 py-1 rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="check_circle">check_circle</span> ACKED
+              </span>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10923</td>
+</tr>
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-share-mono text-xs text-on-surface-variant">2023-10-27 13:20:15.221</td>
+<td class="px-4 py-4 font-share-mono text-xs">S7-1500-02</td>
+<td class="px-4 py-4 font-share-mono text-xs">SENSOR-422</td>
+<td class="px-4 py-4 font-rajdhani text-sm text-on-surface/80">SIGNAL NOISE EXCEEDS OPERATIONAL THRESHOLD</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-tertiary-container/20 border border-tertiary text-tertiary text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span> WARNING
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<span class="inline-flex items-center gap-1 text-on-surface-variant text-[10px] font-rajdhani font-bold bg-surface-container-high px-2 py-1 rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="check_circle">check_circle</span> ACKED
+              </span>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10922</td>
+</tr>
+<tr class="group hover:bg-error/5 transition-colors border-l-4 border-error bg-error/5">
+<td class="px-6 py-4 font-share-mono text-xs text-error">2023-10-27 13:11:04.981</td>
+<td class="px-4 py-4 font-share-mono text-xs">S7-1500-01</td>
+<td class="px-4 py-4 font-share-mono text-xs">FAN-VENT-B</td>
+<td class="px-4 py-4 font-rajdhani font-semibold text-sm">VENTILATION FAN FAILURE - AMBIENT TEMP RISING</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-error/20 border border-error text-error text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="dangerous" style="font-variation-settings: 'FILL' 1;">dangerous</span> FAULT
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<button class="px-3 py-1 bg-error text-on-error font-rajdhani font-bold text-[10px] uppercase rounded-sm hover:brightness-125 transition-all">ACK</button>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10921</td>
+</tr>
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-share-mono text-xs text-on-surface-variant">2023-10-27 12:55:30.001</td>
+<td class="px-4 py-4 font-share-mono text-xs">LOGIX-42</td>
+<td class="px-4 py-4 font-share-mono text-xs">PLC-BATT</td>
+<td class="px-4 py-4 font-rajdhani text-sm text-on-surface/80">BACKUP BATTERY LOW - REPLACEMENT SCHEDULED</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-tertiary-container/20 border border-tertiary text-tertiary text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span> WARNING
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<span class="inline-flex items-center gap-1 text-on-surface-variant text-[10px] font-rajdhani font-bold bg-surface-container-high px-2 py-1 rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="check_circle">check_circle</span> ACKED
+              </span>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10920</td>
+</tr>
+<tr class="group hover:bg-white/5 transition-colors">
+<td class="px-6 py-4 font-share-mono text-xs text-on-surface-variant">2023-10-27 12:44:12.888</td>
+<td class="px-4 py-4 font-share-mono text-xs">S7-1500-02</td>
+<td class="px-4 py-4 font-share-mono text-xs">MAIN-BREAKER</td>
+<td class="px-4 py-4 font-rajdhani text-sm text-on-surface/80">MAINTENANCE OVERRIDE ACTIVE - STATION 042</td>
+<td class="px-4 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 bg-primary/10 border border-primary text-primary text-[10px] font-bold uppercase tracking-tighter rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="info" style="font-variation-settings: 'FILL' 1;">info</span> INFO
+              </span>
+</td>
+<td class="px-4 py-4 text-center">
+<span class="inline-flex items-center gap-1 text-on-surface-variant text-[10px] font-rajdhani font-bold bg-surface-container-high px-2 py-1 rounded-sm">
+<span class="material-symbols-outlined text-[12px]" data-icon="check_circle">check_circle</span> ACKED
+              </span>
+</td>
+<td class="px-6 py-4 font-share-mono text-xs text-right text-on-surface-variant">AL-10919</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination/Footer -->
+<div class="mt-6 flex justify-between items-center px-4">
+<div class="text-[10px] font-share-mono text-on-surface-variant uppercase tracking-widest">
+        Showing 10 of 27 entries
+      </div>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center bg-surface-container-high border border-outline-variant text-on-surface-variant hover:border-primary transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary font-share-mono text-xs">1</button>
+<button class="w-8 h-8 flex items-center justify-center bg-surface-container-high border border-outline-variant text-on-surface hover:border-primary font-share-mono text-xs">2</button>
+<button class="w-8 h-8 flex items-center justify-center bg-surface-container-high border border-outline-variant text-on-surface hover:border-primary font-share-mono text-xs">3</button>
+<button class="w-8 h-8 flex items-center justify-center bg-surface-container-high border border-outline-variant text-on-surface-variant hover:border-primary transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Hexagonal Decorative Watermark (Bottom Right) -->
+<div class="fixed bottom-0 right-0 pointer-events-none opacity-5 translate-x-1/4 translate-y-1/4">
+<svg fill="none" height="400" viewbox="0 0 100 100" width="400" xmlns="http://www.w3.org/2000/svg">
+<path d="M50 5L93.3013 30V80L50 105L6.69873 80V30L50 5Z" stroke="#44d8f1" stroke-width="0.5"></path>
+<path d="M50 15L84.641 35V75L50 95L15.359 75V35L50 15Z" stroke="#44d8f1" stroke-width="0.5"></path>
+<path d="M50 25L75.9808 40V70L50 85L24.0192 70V40L50 25Z" stroke="#44d8f1" stroke-width="0.5"></path>
+</svg>
+</div>
+</body></html>

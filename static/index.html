@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PLC Network Monitor v1 — Industrial HMI</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    rel="stylesheet">
+</head>
+
+<body>
+  <div class="wrap">
+
+    <!-- ══════════════════════════════════════ ALARM TICKER STRIP -->
+    <div id="alarmTicker" class="ok hidden">
+      <div class="ticker-label ok" id="tickerLabel">
+        <div class="ticker-dot ok" id="tickerDot"></div>
+        <span id="tickerStatus">ALL SYSTEMS NOMINAL</span>
+      </div>
+      <div class="ticker-scroller">
+        <div class="ticker-inner ok" id="tickerInner">● ALL SYSTEMS NOMINAL — No active alarms</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ HEADER -->
+    <header>
+      <div class="hdr">
+        <div class="logo">
+          <div class="lmark-hex">
+            <span class="material-symbols-outlined">hexagon</span>
+          </div>
+          <div class="logo-text">
+            <div class="logo-main">PLCNET <span>v1</span></div>
+            <div class="logo-sub">Industrial Network Monitor — Tata Motors</div>
+          </div>
+        </div>
+        <div class="hdr-r">
+          <div class="alarm-pill hidden" id="alarmPill">
+            <span id="alarmCount">0</span>
+          </div>
+          <div class="hdr-tile">
+            <div class="hdr-tile-l">Poll Rate</div>
+            <div class="hdr-tile-v">2.0s</div>
+          </div>
+          <div class="hdr-tile">
+            <div class="hdr-tile-l">Protocol</div>
+            <div class="hdr-tile-v">MC Type3E</div>
+          </div>
+          <div class="conn dead" id="connBadge">
+            <div class="conn-dot"></div>
+            <span id="connLbl">CONNECTING</span>
+          </div>
+          <div class="clock" id="clk">--:--:--</div>
+        </div>
+      </div>
+      <!-- TABS — icon + label style matching Stitch design -->
+      <div class="tabs">
+        <div class="tab active" onclick="showPage('monitor',  this)"><span
+            class="material-symbols-outlined tab-icon">monitor</span>MONITOR</div>
+        <div class="tab" onclick="showPage('iomap',    this)"><span
+            class="material-symbols-outlined tab-icon">grid_view</span>I/O MAP</div>
+        <div class="tab" onclick="showPage('rw',       this)"><span
+            class="material-symbols-outlined tab-icon">edit_note</span>READ/WRITE</div>
+        <div class="tab" onclick="showPage('logging',  this)"><span
+            class="material-symbols-outlined tab-icon">description</span>DATA LOG</div>
+        <div class="tab" onclick="showPage('alarms',   this)"><span
+            class="material-symbols-outlined tab-icon">notifications</span>ALARMS <span class="tab-badge"
+            id="ahUnackedBadge" style="display:none"></span></div>
+        <div class="tab" onclick="showPage('backup',   this)"><span
+            class="material-symbols-outlined tab-icon">backup</span>BACKUP</div>
+        <div class="tab" onclick="showPage('schedule', this)"><span
+            class="material-symbols-outlined tab-icon">calendar_today</span>SCHEDULE</div>
+        <div class="tab" onclick="showPage('email',    this)"><span
+            class="material-symbols-outlined tab-icon">mail</span>EMAIL</div>
+        <div class="tab" onclick="showPage('lineconfig',this)"><span
+            class="material-symbols-outlined tab-icon">settings_input_component</span>LINE CONFIG</div>
+        <div class="tab" onclick="showPage('lineboard', this)"><span
+            class="material-symbols-outlined tab-icon">dashboard</span>LINE BOARD</div>
+        <div class="tab" onclick="showPage('about',     this)"><span
+            class="material-symbols-outlined tab-icon">info</span>ABOUT</div>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════════════════ STATS TILES -->
+    <div class="stats">
+      <div class="st s1">
+        <div class="st-l">Total PLCs</div>
+        <div class="st-v" id="stT">—</div>
+      </div>
+      <div class="st s2">
+        <div class="st-l">Running</div>
+        <div class="st-v-wrap">
+          <div class="st-v" id="stOn">—</div>
+          <div class="st-glow-bar s2-bar"></div>
+        </div>
+      </div>
+      <div class="st s3">
+        <div class="st-l">Faulted</div>
+        <div class="st-v-wrap">
+          <div class="st-v" id="stOff">—</div>
+          <div class="st-glow-bar s3-bar"></div>
+        </div>
+      </div>
+      <div class="st s4">
+        <div class="st-l">Warnings</div>
+        <div class="st-v-wrap">
+          <div class="st-v" id="stW">—</div>
+          <div class="st-glow-bar s4-bar"></div>
+        </div>
+      </div>
+      <div class="st s5">
+        <div class="st-l">Active Alarms</div>
+        <div class="st-v" id="stA">0</div>
+      </div>
+      <div class="st s6">
+        <div class="st-l">Log Records</div>
+        <div class="st-v" id="stL">0</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: MONITOR -->
+    <div class="page active" id="page-monitor">
+      <div class="mon">
+        <div class="mon-main">
+          <div class="mon-hdr">
+            <h2 class="sttl">Live PLC Status — Process Overview</h2>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="plc-count-badge" id="plcCountBadge"></span>
+              <button class="add-plc-btn" onclick="showAddPlcModal()" title="Add New PLC Station">
+                <span class="material-symbols-outlined" style="font-size:16px">add</span>
+                &nbsp;ADD DEVICE
+              </button>
+            </div>
+          </div>
+          <div class="pgrid" id="pgrid"></div>
+        </div>
+        <div class="mon-side">
+          <button class="scn-btn" onclick="forceRefresh()">
+            <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle">refresh</span>
+            &nbsp;FORCE SCAN
+          </button>
+          <div class="pnl">
+            <div class="pnlt"><span class="material-symbols-outlined"
+                style="font-size:14px;vertical-align:middle">lan</span>&nbsp;Network Topology</div>
+            <div class="nm"><canvas id="netCv"></canvas></div>
+          </div>
+          <div class="pnl">
+            <div class="pnlt">
+              <span class="material-symbols-outlined"
+                style="font-size:14px;vertical-align:middle">event_list</span>&nbsp;System Event Log
+              <span class="evl-badge">AUTO-REFRESH: ON</span>
+            </div>
+            <div class="evl" id="evl"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: I/O MAP -->
+    <div class="page" id="page-iomap">
+      <div class="io-layout">
+        <div class="io-controls">
+          <select class="io-sel" id="ioPlcSel" onchange="renderIO()">
+            <option value="">Select PLC Station…</option>
+          </select>
+          <button class="io-btn" onclick="renderIO()">⟳ Refresh</button>
+          <span id="ioStatus" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted2)"></span>
+        </div>
+        <div class="io-summary" id="ioSummary"></div>
+        <div class="io-sections" id="ioSections">
+          <div
+            style="grid-column:1/-1;text-align:center;color:var(--muted2);padding:50px;font-family:'Share Tech Mono',monospace;font-size:12px">
+            ← Select a PLC station to view I/O map
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: READ/WRITE -->
+    <div class="page" id="page-rw">
+      <div class="rw-layout">
+        <div class="rwp">
+          <div class="rwt">Read Registers</div>
+          <div class="rws">Poll live values from any device address</div>
+          <div class="fr"><label class="fl">PLC Station</label><select class="fs" id="rdPlc"></select></div>
+          <div class="frw">
+            <div class="fr"><label class="fl">Device Address (D100, X0, M5…)</label><input class="fi" id="rdDev"
+                value="D0"></div>
+            <div class="fr"><label class="fl">Count</label><input class="fi" id="rdCnt" type="number" value="10" min="1"
+                max="100"></div>
+          </div>
+          <div class="fr"><label class="fl">Register Type</label>
+            <select class="fs" id="rdType">
+              <option value="word">Word — D, W, R, TN, CN</option>
+              <option value="bit">Bit — M, X, Y, L</option>
+            </select>
+          </div>
+          <button class="sb-btn r" onclick="doRead()">▶ EXECUTE READ</button>
+          <div class="res" id="rdRes" style="color:var(--muted2)">// Results appear here…</div>
+        </div>
+        <div class="rwp">
+          <div class="rwt">Write Register</div>
+          <div class="rws">Force a value directly to PLC memory</div>
+          <div class="fr"><label class="fl">PLC Station</label><select class="fs" id="wrPlc"></select></div>
+          <div class="frw">
+            <div class="fr"><label class="fl">Device Address</label><input class="fi" id="wrDev" value="D0"></div>
+            <div class="fr"><label class="fl">Value</label><input class="fi" id="wrVal" type="number" value="0"></div>
+          </div>
+          <div class="fr"><label class="fl">Register Type</label>
+            <select class="fs" id="wrType">
+              <option value="word">Word — D, W, R</option>
+              <option value="bit">Bit — M, Y (0 or 1)</option>
+            </select>
+          </div>
+          <button class="sb-btn w" onclick="doWrite()">✏ EXECUTE WRITE</button>
+          <div class="res" id="wrRes" style="color:var(--muted2)">// Write result appears here…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: LOGGING -->
+    <div class="page" id="page-logging">
+      <div class="log-layout">
+        <div>
+          <div class="log-form">
+            <div class="log-title">I/O Data Logger</div>
+            <div class="log-sub">Configure points to monitor &amp; log with alarm thresholds</div>
+
+            <div id="alarmBanner"
+              style="display:none;background:rgba(255,23,68,.06);border:1px solid rgba(255,23,68,.2);border-left:3px solid var(--fault);padding:10px;margin-bottom:12px;">
+              <div
+                style="font-size:8px;letter-spacing:3px;color:var(--fault);margin-bottom:7px;font-family:'Rajdhani',sans-serif;font-weight:700;">
+                ⚠ ACTIVE FAULT CONDITIONS</div>
+              <div class="alarm-panel" id="alarmList"></div>
+            </div>
+
+            <div class="log-items" id="logItems">
+              <div
+                style="color:var(--muted2);font-size:12px;text-align:center;padding:16px;font-family:'Rajdhani',sans-serif">
+                No points configured yet</div>
+            </div>
+
+            <div class="log-add-form">
+              <div
+                style="font-size:8px;letter-spacing:3px;color:var(--muted2);margin-bottom:10px;font-family:'Rajdhani',sans-serif;font-weight:700;">
+                ADD MONITORING POINT</div>
+              <div class="fr"><label class="fl">PLC Station</label><select class="fs" id="lgPlc"></select></div>
+              <div class="frw">
+                <div class="fr"><label class="fl">Device Address (D5, X3, M10)</label><input class="fi" id="lgDev"
+                    placeholder="D0"></div>
+                <div class="fr"><label class="fl">Tag Label</label><input class="fi" id="lgLbl"
+                    placeholder="Tank Level"></div>
+              </div>
+              <div class="fr"><label class="fl">Data Type</label>
+                <select class="fs" id="lgType" onchange="toggleThresh()">
+                  <option value="word">Word — D register (numeric)</option>
+                  <option value="bit">Bit — M, X, Y (on/off)</option>
+                </select>
+              </div>
+              <div id="wordThresh">
+                <div class="frw">
+                  <div class="fr"><label class="fl">Lo-Lo Limit (fault below)</label><input class="fi" id="lgMin"
+                      type="number" placeholder="e.g. 100"></div>
+                  <div class="fr"><label class="fl">Hi-Hi Limit (fault above)</label><input class="fi" id="lgMax"
+                      type="number" placeholder="e.g. 900"></div>
+                </div>
+              </div>
+              <div id="bitThresh" style="display:none">
+                <div class="fr"><label class="fl">Expected State</label>
+                  <select class="fs" id="lgExp">
+                    <option value="1">ON — Alarm if OFF</option>
+                    <option value="0">OFF — Alarm if ON</option>
+                    <option value="">No check</option>
+                  </select>
+                </div>
+              </div>
+              <div class="log-btns">
+                <button class="lb add" onclick="addLogItem()">+ Add Point</button>
+                <button class="lb save" onclick="saveLogConfig()">✓ Save Config</button>
+                <button class="lb clr" onclick="clearLogItems()">✕ Clear All</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="log-right">
+          <div class="log-toolbar">
+            <button class="ltb exp" style="background:rgba(255,145,0,.2); color:#ff9100; border-color:rgba(255,145,0,.4);" onclick="stopAndSaveLogs()">🛑 Stop & Save to Logs</button>
+            <button class="ltb exp" onclick="exportExcel()">↓ Export Report</button>
+            <button class="ltb exp" onclick="emailLogReport()" style="background:rgba(0,188,212,.12)">📤 Email
+              Report</button>
+            <button class="ltb clr" onclick="clearLogs()">✕ Clear Log</button>
+            <span class="log-count" id="logCount">0 records</span>
+          </div>
+          <div class="log-tbl-wrap">
+            <table class="log-tbl">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>PLC Station</th>
+                  <th>Tag</th>
+                  <th>Label</th>
+                  <th>Value</th>
+                  <th>Condition</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="logTbody">
+                <tr>
+                  <td colspan="7"
+                    style="text-align:center;color:var(--muted2);padding:24px;font-family:'Share Tech Mono',monospace;font-size:11px">
+                    No data — add monitoring points and save config</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- ══════════════════════════════════════ PAGE: ALARMS -->
+    <div class="page" id="page-alarms">
+      <div class="ah-layout">
+        <div class="ah-toolbar">
+          <div class="sttl" style="margin:0">🔔 &nbsp;Alarm History</div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <select class="io-sel" id="ahSevFilter" onchange="fetchAlarmHistory()" style="min-width:120px">
+              <option value="">All Severity</option>
+              <option value="warning">Warning</option>
+              <option value="fault">Fault</option>
+              <option value="info">Info</option>
+            </select>
+            <select class="io-sel" id="ahAckFilter" onchange="fetchAlarmHistory()" style="min-width:130px">
+              <option value="">All Ack Status</option>
+              <option value="false">Unacknowledged</option>
+              <option value="true">Acknowledged</option>
+            </select>
+            <select class="io-sel" id="ahPlcFilter" onchange="fetchAlarmHistory()" style="min-width:140px">
+              <option value="">All PLCs</option>
+            </select>
+            <button class="io-btn" onclick="fetchAlarmHistory()">⟳</button>
+            <button class="ltb exp" onclick="ackAllAlarms()">✓ Ack All</button>
+            <button class="ltb exp" onclick="exportAlarmHistory()" style="background:rgba(0,188,212,.1)">↓
+              Export</button>
+            <button class="ltb clr" onclick="clearAlarmHistory()">✕ Clear</button>
+          </div>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);padding:4px 0 8px"
+          id="ahInfo"></div>
+        <div class="log-tbl-wrap" style="max-height:calc(100vh - 280px)">
+          <table class="log-tbl ah-tbl">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>PLC</th>
+                <th>Device</th>
+                <th>Message</th>
+                <th>Severity</th>
+                <th>Acknowledge</th>
+                <th>ID</th>
+              </tr>
+            </thead>
+            <tbody id="ahTbody">
+              <tr>
+                <td colspan="7"
+                  style="text-align:center;color:var(--muted2);padding:32px;font-family:'Share Tech Mono',monospace;font-size:11px">
+                  Loading alarm history…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: BACKUP -->
+    <div class="page" id="page-backup">
+      <div class="bak-layout">
+        <div class="sttl">PLC Memory Backup — Full Device Memory (GX Works Compatible)</div>
+
+        <div
+          style="background:rgba(0,188,212,.05);border:1px solid rgba(0,188,212,.2);border-left:3px solid var(--accent);padding:10px 16px;margin-bottom:12px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted2);line-height:1.8">
+          Reads: D0-D7999 (8000 words) · TN0-TN511 · CN0-CN255 · SD0-SD511 · W0-W511 · M0-M8191 (8192 bits) · L0-L8191 ·
+          F0-F255 · SM0-SM511<br>
+          Output: JSON memory dump &nbsp;+&nbsp; Styled Excel workbook (one sheet per device type)
+        </div>
+
+        <div class="bak-bar">
+          <button class="bbtn p" onclick="bakAll()">⬇ Backup All Stations</button>
+          <button class="bbtn s" onclick="bakSelected()">⬇ Backup Selected</button>
+        </div>
+
+        <div style="background:var(--bg-panel);border:1px solid var(--border);overflow:hidden;margin-bottom:16px;">
+          <table class="btbl">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="chkAll" onchange="toggleAll(this)" style="accent-color:var(--accent)">
+                </th>
+                <th>Station ID</th>
+                <th>CPU Model</th>
+                <th>IP Address</th>
+                <th>Status</th>
+                <th>Actions &amp; Progress</th>
+              </tr>
+            </thead>
+            <tbody id="bakTbody"></tbody>
+          </table>
+        </div>
+
+        <div class="sttl">Saved Backup Files</div>
+        <div class="bak-file-list" id="bakFileList">
+          <div style="color:var(--muted2);font-family:'Share Tech Mono',monospace;font-size:10px;padding:14px">Loading…
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: SCHEDULE -->
+    <div class="page" id="page-schedule">
+      <div class="schd-layout">
+        <div class="schd-left">
+          <div class="sttl">⏰ &nbsp;Scheduled Auto-Backup</div>
+
+          <!-- Status card -->
+          <div class="schd-status-card">
+            <div class="schd-status-row">
+              <span class="schd-badge schd-paused" id="schdBadge">⬤ PAUSED</span>
+              <button class="schd-btn schd-btn-enable" id="schdToggleBtn" onclick="toggleScheduler()">▶ ENABLE
+                Scheduler</button>
+            </div>
+            <div class="schd-meta-grid">
+              <div>
+                <div class="schd-meta-l">Total Runs</div>
+                <div class="schd-meta-v" id="schdRunCount">0</div>
+              </div>
+              <div>
+                <div class="schd-meta-l">Last Run</div>
+                <div class="schd-meta-v" id="schdLastRun">—</div>
+              </div>
+              <div>
+                <div class="schd-meta-l">Next Run</div>
+                <div class="schd-meta-v" id="schdNextRun">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings form -->
+          <div class="schd-form">
+            <div
+              style="font-size:8px;letter-spacing:3px;color:var(--muted2);margin-bottom:12px;font-family:'Rajdhani',sans-serif;font-weight:700">
+              BACKUP SETTINGS</div>
+            <div class="frw">
+              <div class="fr">
+                <label class="fl">Interval (minutes)</label>
+                <input class="fi" id="schdInterval" type="number" value="60" min="1" max="1440">
+              </div>
+            </div>
+
+            <div
+              style="font-size:8px;letter-spacing:3px;color:var(--muted2);margin:12px 0 8px;font-family:'Rajdhani',sans-serif;font-weight:700">
+              TARGET PLCs</div>
+            <div class="schd-plc-list" id="schdPlcList"></div>
+
+            <div class="schd-form-btns">
+              <button class="sbtn-save" onclick="saveScheduleSettings()">✓ Save Settings</button>
+              <button class="sbtn-now" id="schdRunNowBtn" onclick="runBackupNow()">⚡ RUN NOW</button>
+            </div>
+          </div>
+          <div
+            style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);line-height:2;background:var(--bg-panel);border:1px solid var(--border);padding:12px">
+            1. Set the interval (e.g. 60 = every hour)<br>
+            2. Select target PLCs (or leave all checked for all)<br>
+            3. Click Save Settings, then ENABLE<br>
+            4. Backups are saved as JSON + Excel to the backups/ folder<br>
+            5. Click RUN NOW to trigger an immediate backup<br>
+            <br>
+            <span style="color:var(--accent)">Tip:</span> Use the EMAIL tab to configure automatic email delivery of
+            reports
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: EMAIL -->
+    <div class="page" id="page-email">
+      <div class="email-layout">
+        <div class="email-left">
+          <div class="sttl">📤 &nbsp;Email Report Configuration</div>
+
+          <div class="email-form">
+            <div
+              style="font-size:8px;letter-spacing:3px;color:var(--muted2);margin-bottom:12px;font-family:'Rajdhani',sans-serif;font-weight:700">
+              SMTP SETTINGS</div>
+
+            <div class="frw">
+              <div class="fr"><label class="fl">SMTP Host</label><input class="fi" id="emailSmtpHost"
+                  placeholder="smtp.gmail.com" value="smtp.gmail.com"></div>
+              <div class="fr"><label class="fl">Port</label><input class="fi" id="emailSmtpPort" type="number"
+                  value="587"></div>
+            </div>
+            <div class="fr">
+              <label class="fl" style="display:flex;align-items:center;gap:8px">
+                <input type="checkbox" id="emailUseTls" checked style="accent-color:var(--accent)">
+                Use TLS (STARTTLS)
+              </label>
+            </div>
+            <div class="fr"><label class="fl">Username / Email</label><input class="fi" id="emailUsername"
+                placeholder="your@gmail.com"></div>
+            <div class="fr"><label class="fl">Password / App Password</label><input class="fi" id="emailPassword"
+                type="password" placeholder="Leave blank to keep existing"></div>
+            <div class="fr"><label class="fl">From Name</label><input class="fi" id="emailFromName"
+                placeholder="PLC Monitor v1" value="PLC Monitor v1"></div>
+            <div class="fr"><label class="fl">Subject Prefix</label><input class="fi" id="emailSubjPfx"
+                placeholder="[PLC-NET]" value="[PLC-NET]"></div>
+            <div class="fr"><label class="fl">Recipients (comma-separated)</label><input class="fi" id="emailRecipients"
+                placeholder="ops@company.com, manager@company.com"></div>
+
+            <div class="email-btns">
+              <button class="ebtn save" onclick="saveEmailConfig()">💾 Save Config</button>
+              <button class="ebtn test" id="emailTestBtn" onclick="sendTestEmail()">📨 Send Test</button>
+            </div>
+            <div class="email-status" id="emailStatus" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="email-right">
+          <div
+            style="font-size:8px;letter-spacing:3px;color:var(--muted2);margin-bottom:12px;font-family:'Rajdhani',sans-serif;font-weight:700">
+            SEND REPORTS</div>
+
+          <div class="email-action-card">
+            <div class="eac-icon">📋</div>
+            <div class="eac-body">
+              <div class="eac-title">Data Log Report</div>
+              <div class="eac-sub">Email all current log records as an Excel attachment</div>
+            </div>
+            <button class="eac-btn" onclick="emailLogReport()">Send</button>
+          </div>
+
+          <div class="email-action-card" style="margin-top:10px">
+            <div class="eac-icon">📦</div>
+            <div class="eac-body">
+              <div class="eac-title">Backup File</div>
+              <div class="eac-sub">Enter a backup filename from the Backup tab to email it</div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <input class="fi" id="emailBakFile" placeholder="backup_PLC-LINE-01_20260320_120000"
+                style="flex:1;font-size:9px">
+              <button class="eac-btn"
+                onclick="emailBackupFile(document.getElementById('emailBakFile').value)">Send</button>
+            </div>
+          </div>
+
+          <div
+            style="font-size:8px;letter-spacing:3px;color:var(--muted2);margin:20px 0 10px;font-family:'Rajdhani',sans-serif;font-weight:700">
+            GMAIL SETUP GUIDE</div>
+          <div
+            style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);line-height:2;background:var(--bg-panel);border:1px solid var(--border);padding:12px">
+            1. Go to Google Account → Security<br>
+            2. Enable 2-Step Verification<br>
+            3. Create an App Password for "Mail"<br>
+            4. Use that 16-char password here (not Gmail password)<br>
+            5. Set SMTP Host: smtp.gmail.com, Port: 587, TLS: ON<br>
+            <br>
+            <span style="color:var(--accent)">For Outlook:</span> smtp.office365.com : 587<br>
+            <span style="color:var(--accent)">For Yahoo:</span> smtp.mail.yahoo.com : 587
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: LINE CONFIG -->
+    <div class="page" id="page-lineconfig">
+      <div class="lbc-layout">
+
+        <!-- ── TOP HEADER ── -->
+        <div class="lbc-header">
+          <div class="sttl" style="margin:0">⚙ &nbsp;Line Status Board — Configuration</div>
+          <div style="display:flex;gap:8px">
+            <button class="sbtn-save" style="padding:8px 20px" onclick="saveLineBoardConfig()">💾 Save &amp;
+              Apply</button>
+            <button class="sbtn-now" style="padding:8px 16px" onclick="resetLineBoardConfig()">↺ Reset</button>
+          </div>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);padding:4px 0 12px">
+          Configure all PLC register addresses below, then click Save &amp; Apply. Open the LINE BOARD tab to see the
+          live display.
+        </div>
+
+        <!-- ── SHIFT & PRODUCTION TARGET (full width banner) ── -->
+        <div class="lbc-shift-banner">
+          <div class="lbc-shift-title">⏱ &nbsp;SHIFT &amp; PRODUCTION TARGET</div>
+          <div class="lbc-shift-fields">
+            <div>
+              <div class="lbf-micro">Shift Duration (hours, e.g. 8.5 for 8hr 30min)</div>
+              <input class="fi" id="lbShiftHours" type="number" step="0.5" min="0.5" max="24" value="8.5"
+                onchange="autoCalculateDrop(); updateAutoTillPreview()" style="max-width:120px">
+            </div>
+            <div>
+              <div class="lbf-micro">Shift Start Time (24-hr HH:MM)</div>
+              <input class="fi" id="lbShiftStart" type="time" value="08:00" style="max-width:120px">
+            </div>
+            <div>
+              <div class="lbf-micro">Daily Production Target (units for full shift)</div>
+              <input class="fi" id="lbDailyTarget" type="number" min="0" value="170"
+                onchange="autoCalculateDrop(); updateAutoTillPreview()" style="max-width:140px">
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <button class="sbtn-save" style="padding:8px 18px;white-space:nowrap" onclick="autoCalculateDrop()">
+                ⚡ Auto-Calculate Dropping Plans
+              </button>
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <div
+                style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);line-height:1.8;padding:6px 0">
+                Hourly rate = target ÷ shift hours<br>
+                TILL LAST HOUR = rate × hours done today
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lbc-grid">
+
+          <!-- ── COLUMN 1: Basic Settings ── -->
+          <div class="lbc-card">
+            <div class="lbc-card-title">① BASIC SETTINGS</div>
+
+            <div class="fr"><label class="fl">Line Name (shown in header)</label>
+              <input class="fi" id="lbLineName" placeholder="LINE 1" value="LINE 1">
+            </div>
+
+            <div class="fr"><label class="fl">PLC Station (reads all registers from here)</label>
+              <select class="fi" id="lbPlcSel"></select>
+            </div>
+
+            <div class="frw">
+              <div class="fr"><label class="fl">Number of Stations</label>
+                <input class="fi" id="lbNumStations" type="number" min="1" max="30" value="8"
+                  onchange="onLineBoardCountChange()">
+              </div>
+              <div class="fr"><label class="fl">Buttons per Station</label>
+                <input class="fi" id="lbNumButtons" type="number" min="1" max="10" value="5"
+                  onchange="onLineBoardCountChange()">
+              </div>
+            </div>
+
+            <div class="lbc-divider">LINE STATE REGISTERS</div>
+
+            <!-- AUTO: Derive LINE STATE from button matrix -->
+            <div
+              style="background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.2);border-left:3px solid var(--run);padding:10px 14px;margin-bottom:10px">
+              <div
+                style="font-size:8px;letter-spacing:2px;color:var(--run);font-family:'Rajdhani',sans-serif;font-weight:700;margin-bottom:5px">
+                ⬤ AUTO LINE STATE — DERIVED FROM BUTTON MATRIX</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);line-height:1.8">
+                LINE RUNNING &nbsp;=&nbsp; <span style="color:var(--run)">No buttons active</span> in any station<br>
+                LINE STOPPED &nbsp;=&nbsp; <span style="color:var(--fault)">Any button pressed</span> in any station
+              </div>
+            </div>
+
+            <!-- Stopped Station D-word register -->
+            <div class="fr">
+              <label class="fl">Stopped Station No. register (D-word) — which station number is stopped</label>
+              <input class="fi" id="lbRegStoppedStn" placeholder="D100" value="D100">
+            </div>
+
+            <!-- ── END-OF-LINE SENSOR (Advanced) ── -->
+            <div class="lbc-divider" style="margin-top:14px;border-color:rgba(170,68,255,.3)">
+              <span style="color:var(--purple)">⚡ END-OF-LINE SENSOR</span>
+              <span
+                style="font-size:7px;color:var(--muted2);font-family:'Share Tech Mono',monospace;font-weight:400;margin-left:6px">ADVANCED
+                — also stops line when sensor triggers</span>
+            </div>
+
+            <div class="kpi-reg-row" id="eolRow" style="border-color:rgba(170,68,255,.2);flex-wrap:wrap;gap:8px">
+              <button class="kpi-toggle kpi-off" id="eolEnable" onclick="toggleEolSensor(this)"
+                title="Enable End-of-Line Sensor">OFF</button>
+              <div class="kpi-reg-label" style="color:var(--purple);min-width:80px">EOL SENSOR</div>
+              <div style="display:flex;flex-direction:column;flex:1;min-width:110px">
+                <div class="lbf-micro">Sensor Bit Address (X / Y / M)</div>
+                <input class="fi" id="lbEolReg" placeholder="X0" disabled style="opacity:.4">
+              </div>
+              <div style="display:flex;flex-direction:column;min-width:160px">
+                <div class="lbf-micro">Trigger Condition — Line STOPS when sensor is:</div>
+                <select class="fi" id="lbEolActiveState" disabled style="opacity:.4">
+                  <option value="OFF">OFF — sensor goes OFF → line stops (normal-open)</option>
+                  <option value="ON" selected>ON &nbsp;— sensor goes ON → line stops (normal-closed)</option>
+                </select>
+              </div>
+            </div>
+            <div
+              style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted2);padding:0 4px;margin-bottom:4px;line-height:1.7"
+              id="eolHint">
+              Enable EOL sensor to add a physical end-of-line product sensor that stops the line independently of button
+              presses.
+            </div>
+
+            <div class="lbc-divider">KPI REGISTERS</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);margin-bottom:10px">
+              Toggle each KPI on/off — disabled KPIs are hidden on the Line Board
+            </div>
+
+            <!-- KPI Row helper: toggle + label + input -->
+            <div class="kpi-reg-row" id="kpiRow-oee">
+              <button class="kpi-toggle kpi-on" id="kpiEn-oee" onclick="toggleKpi('oee',this)"
+                title="Click to disable OEE">ON</button>
+              <div class="kpi-reg-label">OEE</div>
+              <input class="fi kpi-reg-input" id="lbRegOEE" placeholder="D120" value="D120" style="flex:1">
+              <span class="kpi-reg-hint">D-word</span>
+            </div>
+
+            <div class="kpi-reg-row" id="kpiRow-availability">
+              <button class="kpi-toggle kpi-on" id="kpiEn-availability" onclick="toggleKpi('availability',this)"
+                title="Click to disable Availability">ON</button>
+              <div class="kpi-reg-label">AVAILABILITY</div>
+              <input class="fi kpi-reg-input" id="lbRegAvailability" placeholder="D121" value="D121" style="flex:1">
+              <span class="kpi-reg-hint">D-word</span>
+            </div>
+
+            <div class="kpi-reg-row" id="kpiRow-performance">
+              <button class="kpi-toggle kpi-on" id="kpiEn-performance" onclick="toggleKpi('performance',this)"
+                title="Click to disable Performance">ON</button>
+              <div class="kpi-reg-label">PERFORMANCE</div>
+              <input class="fi kpi-reg-input" id="lbRegPerformance" placeholder="D122" value="D122" style="flex:1">
+              <span class="kpi-reg-hint">D-word</span>
+            </div>
+
+            <div class="kpi-reg-row" id="kpiRow-drr1">
+              <button class="kpi-toggle kpi-on" id="kpiEn-drr1" onclick="toggleKpi('drr1',this)"
+                title="Click to disable DRR1">ON</button>
+              <div class="kpi-reg-label">DRR1</div>
+              <input class="fi kpi-reg-input" id="lbRegDRR1" placeholder="D123" value="D123" style="flex:1">
+              <span class="kpi-reg-hint">D-word</span>
+            </div>
+
+            <div class="lbc-divider">DISPLAY</div>
+            <div class="fr"><label class="fl">Scrolling Marquee Text</label>
+              <input class="fi" id="lbMarquee" placeholder="WELCOME TO LINE 1">
+            </div>
+          </div>
+
+          <!-- ── COLUMN 2: Button Definitions ── -->
+          <div class="lbc-card">
+            <div class="lbc-card-title">② BUTTON LABELS &amp; COLOURS</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);margin-bottom:10px">
+              Define the name and colour for each emergency/reason button
+            </div>
+            <div id="lbBtnDefs"></div>
+          </div>
+
+          <!-- ── COLUMN 3: Dropping Registers ── -->
+          <div class="lbc-card">
+            <div class="lbc-card-title">③ DROPPING REGISTERS</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);margin-bottom:12px">
+              PLAN and ACTUAL D-word registers for each dropping row
+            </div>
+            <div id="lbDropRegs"></div>
+
+            <div class="lbc-divider" style="margin-top:16px">REASON TIME REGISTERS</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);margin-bottom:10px">
+              D-word registers for accumulated stop-time per reason (LINE RUNNING view)
+            </div>
+            <div id="lbReasonRegs"></div>
+          </div>
+
+        </div><!-- end lbc-grid -->
+
+        <!-- ── REGISTER MATRIX (full width) ── -->
+        <div class="lbc-card" style="margin-top:14px">
+          <div class="lbc-card-title">④ STATION BUTTON REGISTER MATRIX &nbsp;
+            <span style="font-size:9px;color:var(--muted2);font-family:'Share Tech Mono',monospace;font-weight:400">
+              Bit address (X / Y / M) per [Station × Button] — e.g. X0, X1, Y0, M0 — change counts above to regenerate
+            </span>
+          </div>
+          <div style="overflow-x:auto">
+            <div id="lbRegMatrix"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: LINE BOARD -->
+    <div class="page" id="page-lineboard">
+      <div class="lb-page-wrap">
+
+        <!-- Toolbar (hidden in kiosk mode) -->
+        <div class="lb-toolbar" id="lbToolbar">
+          <div class="lb-status-ind lb-ind-stop" id="lbStatusInd">⬤ CONNECTING…</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2)">Auto-refresh:
+              2s</span>
+            <button class="io-btn" onclick="fetchLineBoardLive()">⟳ Refresh Now</button>
+            <button class="io-btn" id="lbKioskBtn" onclick="toggleLineBoardKiosk()"
+              style="background:rgba(170,68,255,.1);border-color:rgba(170,68,255,.4);color:#ce93d8">
+              ⛶ KIOSK MODE
+            </button>
+            <button class="io-btn" onclick="showPage('lineconfig', document.querySelector('.tab:nth-child(11)'))"
+              style="border-color:rgba(0,188,212,.4)">⚙ Config</button>
+          </div>
+        </div>
+
+        <!-- Live board output -->
+        <div id="lbLiveRoot" class="lb-live-root">
+          <div
+            style="text-align:center;color:var(--muted2);padding:80px;font-family:'Share Tech Mono',monospace;font-size:12px">
+            Loading Line Board… go to ⚙ LINE CONFIG tab first to set registers.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ PAGE: ABOUT -->
+    <div class="page" id="page-about">
+      <div class="abt-layout">
+        <div class="abt-card">
+          <div class="abt-logo">
+            <span class="material-symbols-outlined" style="font-size:52px;color:var(--accent)">hexagon</span>
+            <div style="font-size:26px;font-weight:700;letter-spacing:10px;text-indent:10px">PLCNET <span
+                style="color:var(--accent)">v1</span></div>
+          </div>
+
+          <div class="abt-motto">
+            BE BOLD &nbsp;|&nbsp; OWN IT &nbsp;|&nbsp; SOLVE TOGETHER &nbsp;|&nbsp; BE EMPATHETIC
+          </div>
+
+          <div class="abt-grid">
+            <!-- Col 1: System Info -->
+            <div class="abt-col">
+              <div class="abt-sttl">SYSTEM INFO</div>
+              <div class="abt-list">
+                <div class="abt-li"><span class="material-symbols-outlined">check_circle</span> Live Network Monitoring
+                </div>
+                <div class="abt-li"><span class="material-symbols-outlined">check_circle</span> Real-time I/O Mapping
+                </div>
+                <div class="abt-li"><span class="material-symbols-outlined">check_circle</span> Automated Memory Backups
+                </div>
+                <div class="abt-li"><span class="material-symbols-outlined">check_circle</span> Shift-wise Line Board
+                </div>
+                <div class="abt-li"><span class="material-symbols-outlined">check_circle</span> Alarm History &
+                  Reporting</div>
+              </div>
+            </div>
+
+            <!-- Col 2: Developer Info -->
+            <div class="abt-col">
+              <div class="abt-sttl">DEVELOPER INFO</div>
+              <div class="abt-dev-box">
+                <div style="font-size:18px;font-weight:700;color:var(--text-hi);margin-bottom:4px">Govind Kumar</div>
+                <div style="color:var(--accent);font-size:11px;letter-spacing:2px;font-weight:700;margin-bottom:12px">
+                  LAKSHYA TRAINEE</div>
+                <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted2);line-height:1.6">
+                  Tata Motors Shop Floor Systems<br>
+                  Advanced PLC Integration Team<br>
+                  Project: Advance PLC Monitoring System To PLCNET
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="abt-footer">
+            <div style="color:var(--muted2)">Build 1.0.0 · Rev 2026.03.27 · Tata Motors Limited</div>
+            <div style="color:var(--accent);margin-top:4px;font-family:'Share Tech Mono',monospace;font-size:9px">
+              STRICTLY FOR INTERNAL SHOP FLOOR USE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .wrap -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════ MODAL -->
+  <div class="mo" id="mo" onclick="closeModal(event)">
+    <div class="mbox">
+      <button class="mx" onclick="closeModal()">✕</button>
+      <div class="mtit" id="mtit"></div>
+      <div class="msub" id="msub"></div>
+      <div class="mgrid" id="mgrid"></div>
+      <div id="merr"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════ SCRIPTS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="/static/js/config.js"></script>
+  <script src="/static/js/ui.js"></script>
+  <script src="/static/js/monitor.js"></script>
+  <script src="/static/js/iomap.js"></script>
+  <script src="/static/js/readwrite.js"></script>
+  <script src="/static/js/logging.js"></script>
+  <script src="/static/js/backup.js"></script>
+  <script src="/static/js/alarmhist.js"></script>
+  <script src="/static/js/schedule.js"></script>
+  <script src="/static/js/emailcfg.js"></script>
+  <script src="/static/js/lineconfig.js"></script>
+  <script src="/static/js/lineboard.js"></script>
+  <script src="/static/js/socket.js"></script>
+  <script src="/static/js/app.js"></script>
+
+</body>
+
+</html>

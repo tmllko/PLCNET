@@ -1,0 +1,40 @@
+{
+  "name": "projects/6741926069138508237",
+  "projectId": "6741926069138508237",
+  "title": "PLC Network Monitor v3 — Tata Motors Industrial HMI",
+  "visibility": "PRIVATE",
+  "projectType": "PROJECT_DESIGN",
+  "origin": "STITCH",
+  "deviceType": "DESKTOP",
+  "designSystem": {
+    "name": "assets/f6b5d95a6bba47d38ebb0dbd17a25e60",
+    "displayName": "CyberIndustrial V3",
+    "colorMode": "DARK",
+    "font": "SPACE_GROTESK",
+    "roundness": "ROUND_FOUR",
+    "customColor": "#00bcd4"
+  },
+  "screens": {
+    "monitor": {
+      "id": "d684d07e74ce4b7cb9ef3eb1c063d4aa",
+      "sourceScreen": "projects/6741926069138508237/screens/d684d07e74ce4b7cb9ef3eb1c063d4aa",
+      "width": 2560,
+      "height": 2248,
+      "title": "PLC Network Monitor - Monitor Dashboard"
+    },
+    "datalog": {
+      "id": "1d2c95d38e334772b04a4fc55d1a30e3",
+      "sourceScreen": "projects/6741926069138508237/screens/1d2c95d38e334772b04a4fc55d1a30e3",
+      "width": 2560,
+      "height": 2070,
+      "title": "PLC Network Monitor - Data Log"
+    },
+    "alarms": {
+      "id": "a64334824a964c67b4b0cbcc55a4cdf1",
+      "sourceScreen": "projects/6741926069138508237/screens/a64334824a964c67b4b0cbcc55a4cdf1",
+      "width": 2760,
+      "height": 2342,
+      "title": "PLC Network Monitor - Alarms History"
+    }
+  }
+}
