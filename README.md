@@ -1,5 +1,5 @@
 # PLC Network Monitor v1 (PLCNET)
-Advanced Industrial HMI & Digital Action Plan for Mitsubishi PLC Networks (MC Protocol)
+Advanced Industrial Technology & Digital Action Plan for Mitsubishi PLC Networks (MC Protocol)
 
 ## Overview
 PLCNET is a full-featured industrial web dashboard designed to poll, monitor, and log data across multiple Mitsubishi PLCs. Built with a Flask backend and a modern vanilla-JS frontend, the system relies on `pymcprotocol` to directly interface with PLCs over TCP/IP seamlessly.
