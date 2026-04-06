@@ -1,4 +1,4 @@
-# PLC Network Monitor v2 (PLCNET)
+# PLC Network Monitor v1 (PLCNET)
 Advanced Industrial HMI & Digital Action Plan for Mitsubishi PLC Networks (MC Protocol)
 
 ## Overview
