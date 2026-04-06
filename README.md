@@ -1,36 +1,37 @@
-# PLC Network Monitor v1
-Advanced Industrial HMI for Mitsubishi PLC Networks (MC Protocol)
+# PLC Network Monitor v2 (PLCNET)
+Advanced Industrial HMI & Digital Action Plan for Mitsubishi PLC Networks (MC Protocol)
+
+## Overview
+PLCNET is a full-featured industrial web dashboard designed to poll, monitor, and log data across multiple Mitsubishi PLCs. Built with a Flask backend and a modern vanilla-JS frontend, the system relies on `pymcprotocol` to directly interface with PLCs over TCP/IP seamlessly.
+
+### Core Features
+- **Multi-Device Support:** Add, edit, and monitor an entire network of PLCs dynamically via the UI without touching source code.
+- **Auto-Switching Architecture:** Dynamically format inputs/outputs (X/Y) depending on the configuration: Hexadecimal (Q/L/iQ-R Series) or Octal (FX Series) addressing natively supported.
+- **Live Line Board & Action Plan:** Designed for big-screen TVs on the shop floor. Features a live station button matrix, stoppage reason time tracking, OEE/Availability KPIs, dynamic marquee ribbons, and production dropping charts.
+- **Smart Data Logging:** Includes a dedicated subsystem that utilizes a high-speed small auto-scan buffer for extreme speed polling, while cleanly handling "on-demand" targeted reads for arbitrary register addresses outside the buffer. Export to Excel.
+- **Direct Read/Write:** Write bits or words directly into any networked PLC via the UI.
+- **Excel Exports:** Stop and save historical log records natively into a managed `.xlsx` file repository natively on the server.
 
 ## Project Structure
 ```text
-plc_v1/
+plc_v2/
 ├── run.py                   ← Start the server: python run.py
-├── requirements.txt         ← Python dependencies
+├── requirements.txt         ← Python dependencies (.venv setup)
 │
 ├── app/                     ← Flask application package
-│   ├── __init__.py          ← App factory (create_app) + SocketIO instance
-│   ├── config.py            ← PLC network config
-│   ├── state.py             ← Shared in-memory state
-│   │
-│   ├── api/                 ← REST API blueprints
-│   │   ├── plcs.py          ← PLC CRUD and status
-│   │   ├── io.py            ← I/O mapping
-│   │   ├── logging.py       ← Data logging
-│   │   ├── backup.py        ← Memory backup
-│   │   └── static.py        ← Serves index.html
-│   │
-│   └── sockets/             ← WebSocket events
-│       └── events.py        ← on_connect, on_write_register handlers
+│   ├── __init__.py          ← App factory & SocketIO instance
+│   ├── config.py            ← Fallback global configs
+│   ├── state.py             ← Shared thread-safe runtime state
+│   ├── core/                ← Core processing logic (logger, alerts, excel)
+│   ├── plc/                 ← Thread-safe smart polling scripts & connection wrappers
+│   ├── api/                 ← REST hooks for lineboard, loggers, I/O mapping, alarms
+│   └── sockets/             ← Real-time WebSocket emitter
 │
-└── static/                  ← Frontend SPA
-    ├── index.html           ← Main HMI structure
-    ├── css/
-    │   └── style.css        ← CyberIndustrial V1 styles
-    └── js/
-        ├── app.js           ← Bootstrap + shared state
-        ├── monitor.js       ← PLC cards
-        └── ...              ← Module specific logic
-``````
+└── static/                  ← Frontend UI
+    ├── index.html           ← Single-page application template
+    ├── css/style.css        ← Cyber-industrial CSS stylesheet
+    └── js/                  ← Modular logic handlers
+```
 
 ## Quick Start
 
@@ -38,44 +39,18 @@ plc_v1/
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Edit PLC IPs in app/config.py
-
-# 3. Run
+# 2. Start Application (Uses Port 5000 by default)
 python run.py
 
-# 4. Open browser
+# 3. Access Dashboard
 http://localhost:5000
 ```
 
-## Key Configuration
-
-Edit **`app/config.py`** to match your network:
-
-| Setting | Description |
-|---|---|
-| `PLC_CONFIG` | List of PLCs with IP, port, model, location |
-| `IO_SCAN` | Number of X/Y/M/D points to auto-scan |
-| `POLL_INTERVAL` | Seconds between full polls (default: 2) |
-
-## API Reference
-
-| Method | URL | Description |
-|---|---|---|
-| GET | `/api/plcs` | All PLC status snapshots |
-| GET | `/api/status` | Summary counts |
-| GET | `/api/io/<id>` | Raw I/O for one PLC |
-| GET | `/api/alarms` | Active alarms |
-| POST | `/api/plcs/<id>/read` | On-demand register read |
-| POST | `/api/plcs/<id>/write` | Register write |
-| GET/POST | `/api/log/config` | Logging configuration |
-| GET | `/api/log/records` | Recent log records |
-| GET | `/api/log/export` | Download Excel report |
-| POST | `/api/backup/<id>` | Snapshot D+M registers to JSON |
-
-## WebSocket Events
-
-| Event | Direction | Description |
-|---|---|---|
-| `plc_update` | Server → Client | Full data push every poll cycle |
-| `write_register` | Client → Server | Write a value to a PLC register |
-| `write_result` | Server → Client | Confirmation of write operation |
+## UI Tabs & Modules
+1. **MONITOR:** High-level network topology layout showing connected status, heartbeats, and raw base I/O maps for all configured PLCs. Add new PLCs here.
+2. **I/O MAP:** Comprehensive memory map grid. Supports X, Y, M, and D arrays with real-time toggle visualizer.
+3. **READ/WRITE:** Direct console for manual override values into integer words or forcing bits perfectly formatted per PLC connection.
+4. **ALARMS:** Background alarm monitoring triggers warning tags on out-of-spec registers.
+5. **DATA LOGGER:** Dynamic background logger supporting targeted array tracking. Export to `.xlsx`. 
+6. **LINE CONFIG:** Builder logic allowing you to map PLC register arrays into a visual representation of a multi-station production line.
+7. **LINE BOARD:** Kiosk-ready high visibility screen rendering active stoppages, shift total duration tracking, dropping limits, and scrolling marquees.
